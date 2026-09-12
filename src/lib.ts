@@ -1,0 +1,4 @@
+import {io} from 'socket.io-client';
+export const socket=io({autoConnect:false,auth:{token:localStorage.getItem('uno-token')}});
+export async function api(path:string,method='GET',body?:unknown){const r=await fetch('/api'+path,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const data=await r.json();if(!r.ok)throw Error(data.error||'Something went wrong. Please try again.');return data;}
+export function sound(enabled:boolean){if(!enabled)return;try{const ctx=new AudioContext();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.setValueAtTime(520,ctx.currentTime);osc.frequency.exponentialRampToValueAtTime(260,ctx.currentTime+.13);gain.gain.setValueAtTime(.04,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.15);osc.start();osc.stop(ctx.currentTime+.15);osc.onended=()=>void ctx.close();}catch{}}
