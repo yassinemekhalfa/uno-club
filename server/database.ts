@@ -1,8 +1,14 @@
 import {Pool} from 'pg';
 import {randomBytes,randomUUID,scryptSync,timingSafeEqual,createHash} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import type {Express,Request} from 'express';
 import {z} from 'zod';
 export const db=process.env.DATABASE_URL?new Pool({connectionString:process.env.DATABASE_URL}):null;
+export async function ensureSchema(){
+  if(!db)return;
+  const schema=await readFile(new URL('../database/schema.sql',import.meta.url),'utf8');
+  await db.query(schema);
+}
 export const hash=(v:string)=>createHash('sha256').update(v).digest('hex');
 const passwordHash=(v:string)=>{const salt=randomBytes(16).toString('hex');return salt+':'+scryptSync(v,salt,64).toString('hex');};
 const passwordMatches=(v:string,h:string)=>{const [salt,key]=h.split(':');return timingSafeEqual(scryptSync(v,salt,64),Buffer.from(key,'hex'));};
